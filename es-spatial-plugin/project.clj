@@ -24,7 +24,7 @@
     [nasa-cmr/cmr-spatial-lib "0.1.0-SNAPSHOT"]
     [org.clojure/clojure "1.8.0"]
     [org.clojure/tools.logging "0.4.0"]
-    [org.elasticsearch/elasticsearch "1.6.2"]
+    [org.elasticsearch/elasticsearch "6.3.1"]
     [org.ow2.asm/asm "5.1"]]
   :plugins [
     [lein-shell "0.5.0"]

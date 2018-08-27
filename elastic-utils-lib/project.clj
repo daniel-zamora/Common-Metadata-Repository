@@ -10,13 +10,13 @@
   :dependencies [
     [cheshire "5.8.0"]
     [clj-http "2.3.0"]
-    [clojurewerkz/elastisch "2.2.2"]
+    [clojurewerkz/elastisch "6.0.0-dz-1.0-SNAPSHOT"]
     [commons-codec/commons-codec "1.11"]
     [commons-io "2.6"]
     [log4j/log4j "1.2.17"]
     [nasa-cmr/cmr-common-lib "0.1.1-SNAPSHOT"]
     [org.clojure/clojure "1.8.0"]
-    [org.elasticsearch/elasticsearch "1.6.2"]
+    [org.elasticsearch/elasticsearch "6.3.1"]
     [potemkin "0.4.4"]]
   :plugins [
     [lein-shell "0.5.0"]
