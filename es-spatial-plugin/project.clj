@@ -33,9 +33,10 @@
                        "-Dclojure.compiler.direct-linking=true"]
   ;; This is the minimum that must be AOT'd for running in an embeded elastic. AOT :all for installing
   ;; in an elastic vm.
-  :aot [cmr.es-spatial-plugin.SpatialScript
-        cmr.es-spatial-plugin.SpatialScriptFactory
-        cmr.es-spatial-plugin.SpatialSearchPlugin]
+  ; :aot [cmr.es-spatial-plugin.SpatialScript
+  ;       cmr.es-spatial-plugin.SpatialScriptFactory
+  ;       cmr.es-spatial-plugin.SpatialSearchPlugin]
+  :aot [cmr.es-spatial-plugin.SpatialScriptPlugin]
 
   :profiles {
     :dev {
