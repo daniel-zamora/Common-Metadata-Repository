@@ -16,6 +16,7 @@
                     ArchiveAndDistributionInformation]} data-granule]
         {:day-night (string/upper-case DayNightFlag)
          :producer-gran-id (->> Identifiers
+                                ;; This is a new line
                                 (some #(when (= "ProducerGranuleId" (:IdentifierType %)) %))
                                 :Identifier)
          :production-date-time ProductionDateTime
