@@ -291,8 +291,6 @@
 (defmapping collection-mapping :collection
   "Defines the elasticsearch mapping for storing collections. These are the
   fields that will be stored in an Elasticsearch document."
-  {:_id {:index "not_analyzed"
-         :store true}}
   (merge {:deleted (m/stored m/bool-field-mapping) ; deleted=true is a tombstone
           :native-id (m/stored m/string-field-mapping)
           :native-id-lowercase m/string-field-mapping
@@ -335,9 +333,9 @@
           :access-value                   (m/stored m/float-field-mapping)
           :processing-level-id            (m/stored m/string-field-mapping)
           :processing-level-id-lowercase  m/string-field-mapping
-          :processing-level-id.humanized  m/string-field-mapping
-          :processing-level-id-lowercase.humanized m/string-field-mapping
-          :processing-level-id.humanized2 prioritized-humanizer-mapping
+          :processing-level-id-humanized  m/string-field-mapping
+          :processing-level-id-lowercase-humanized m/string-field-mapping
+          :processing-level-id-humanized2 prioritized-humanizer-mapping
           :collection-data-type           (m/stored m/string-field-mapping)
           :collection-data-type-lowercase m/string-field-mapping
 
@@ -365,21 +363,21 @@
 
           :platform-sn                    m/string-field-mapping
           :platform-sn-lowercase          m/string-field-mapping
-          :platform-sn.humanized          m/string-field-mapping
-          :platform-sn-lowercase.humanized m/string-field-mapping
-          :platform-sn.humanized2         prioritized-humanizer-mapping
+          :platform-sn-humanized          m/string-field-mapping
+          :platform-sn-lowercase-humanized m/string-field-mapping
+          :platform-sn-humanized2         prioritized-humanizer-mapping
           :instrument-sn                  m/string-field-mapping
           :instrument-sn-lowercase        m/string-field-mapping
-          :instrument-sn.humanized        m/string-field-mapping
-          :instrument-sn-lowercase.humanized m/string-field-mapping
-          :instrument-sn.humanized2       prioritized-humanizer-mapping
+          :instrument-sn-humanized        m/string-field-mapping
+          :instrument-sn-lowercase-humanized m/string-field-mapping
+          :instrument-sn-humanized2       prioritized-humanizer-mapping
           :sensor-sn                      m/string-field-mapping
           :sensor-sn-lowercase            m/string-field-mapping
           :project-sn2                    (m/stored m/string-field-mapping)
           :project-sn2-lowercase          m/string-field-mapping
-          :project-sn.humanized           m/string-field-mapping
-          :project-sn-lowercase.humanized m/string-field-mapping
-          :project-sn.humanized2          prioritized-humanizer-mapping
+          :project-sn-humanized           m/string-field-mapping
+          :project-sn-lowercase-humanized m/string-field-mapping
+          :project-sn-humanized2          prioritized-humanizer-mapping
           :archive-center                 (m/stored m/string-field-mapping)
           :archive-center-lowercase       m/string-field-mapping
           :data-center                    (m/stored m/string-field-mapping)
@@ -396,11 +394,11 @@
           ;; Mappings for nested fields used for searching and
           ;; hierarchical facets
           :science-keywords science-keywords-field-mapping
-          :science-keywords.humanized science-keywords-field-mapping
+          :science-keywords-humanized science-keywords-field-mapping
 
           :granule-data-format                  (m/stored m/string-field-mapping)
           :granule-data-format-lowercase        m/string-field-mapping
-          :granule-data-format.humanized        prioritized-humanizer-mapping
+          :granule-data-format-humanized        prioritized-humanizer-mapping
 
           :platforms platform-hierarchical-mapping
           :instruments instrument-hierarchical-mapping
@@ -473,9 +471,9 @@
           :start-circular-latitude (m/stored m/double-field-mapping)
 
           ;; additional humanized facet fields
-          :organization.humanized m/string-field-mapping
-          :organization-lowercase.humanized m/string-field-mapping
-          :organization.humanized2 prioritized-humanizer-mapping
+          :organization-humanized m/string-field-mapping
+          :organization-lowercase-humanized m/string-field-mapping
+          :organization-humanized2 prioritized-humanizer-mapping
 
           ;; associated tags
           :tags tag-associations-mapping
@@ -516,7 +514,6 @@
 (defmapping granule-mapping :granule
   "Defines the elasticsearch mapping for storing collections. These are the
   fields that will be stored in an Elasticsearch document."
-  {:_id  {:path "concept-id"}}
   (merge
     {:concept-id (m/stored m/string-field-mapping)
      :revision-id (m/stored m/int-field-mapping)
@@ -685,7 +682,6 @@
 (defmapping tag-mapping :tag
   "Defines the elasticsearch mapping for storing tags. These are the fields
   that will be stored in an Elasticsearch document."
-  {:_id  {:path "concept-id"}}
   {:concept-id (m/stored m/string-field-mapping)
    :tag-key-lowercase (-> m/string-field-mapping m/stored m/doc-values)
    :description (m/not-indexed (m/stored m/string-field-mapping))
@@ -702,7 +698,6 @@
 (defmapping variable-mapping :variable
   "Defines the elasticsearch mapping for storing variables. These are the
   fields that will be stored in an Elasticsearch document."
-  {:_id  {:path "concept-id"}}
   {:concept-id (-> m/string-field-mapping m/stored m/doc-values)
    :revision-id (-> m/int-field-mapping m/stored m/doc-values)
    ;; This is used explicitly for sorting. The values take up less space in the
@@ -732,7 +727,6 @@
 (defmapping service-mapping :service
   "Defines the elasticsearch mapping for storing services. These are the
   fields that will be stored in an Elasticsearch document."
-  {:_id  {:path "concept-id"}}
   {:concept-id (-> m/string-field-mapping m/stored m/doc-values)
    :revision-id (-> m/int-field-mapping m/stored m/doc-values)
    :native-id (-> m/string-field-mapping m/stored m/doc-values)
