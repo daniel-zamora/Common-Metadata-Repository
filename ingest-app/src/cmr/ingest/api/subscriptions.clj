@@ -39,7 +39,7 @@
     (api-core/generate-ingest-response headers save-subscription-result)))
 
 (defn- common-ingest-checks
-  "Common checks needed before starting to process an ingest operation" 
+  "Common checks needed before starting to process an ingest operation"
   [request-context provider-id]
   (common-enabled/validate-write-enabled request-context "ingest")
   (lt-validation/validate-launchpad-token request-context)
@@ -82,6 +82,7 @@
   "Deletes the subscription with the given provider id and native id."
   [provider-id native-id request]
   (let [{:keys [body content-type headers request-context]} request
+        _ (common-ingest-checks request-context provider-id)
         concept-type :subscription
         concept (first (mdb/find-concepts request-context
                                           {:provider-id provider-id
@@ -89,7 +90,6 @@
                                            :exclude-metadata false
                                            :latest true}
                                           concept-type))]
-    (common-ingest-checks request-context provider-id)
     (check-subscription-ingest-permission concept request-context headers provider-id)
     (let [concept-attribs (-> {:provider-id provider-id
                                :native-id native-id
