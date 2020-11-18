@@ -16,6 +16,7 @@
    [cmr.system-int-test.utils.dev-system-util :as dev-sys-util]
    [cmr.system-int-test.utils.index-util :as index]
    [cmr.system-int-test.utils.ingest-util :as ingest]
+   [cmr.system-int-test.utils.index-util :as index]
    [cmr.system-int-test.utils.metadata-db-util :as mdb]
    [cmr.system-int-test.utils.subscription-util :as subscription-util]
    [cmr.transmit.access-control :as access-control]
@@ -396,6 +397,7 @@
         concept (subscription-util/make-subscription-concept {:concept-id supplied-concept-id
                                                               :SubscriberId "user1"
                                                               :native-id "Atlantic-1"})]
+
     ;; caes 1 test against guest token - no subscription
     (testing "guest token - guests can not create subscriptions - passes"
       (let [{:keys [status errors]} (ingest/ingest-concept concept)]
@@ -420,7 +422,7 @@
 
 ;; case 5 test account 2 which does NOT match metadata user and account has prems ; this should be MMT's use case
 (deftest roll-your-own-subscription-and-have-acls-tests-with-acls
-  (testing "Use an account which does not match matches the metadata and DOES have an ACL"
+  (testing "Use an account which does not match the metadata and DOES have an ACL"
     (let [user2-token (echo-util/login (system/context) "user2")
           supplied-concept-id "SUB1000-PROV1"
           concept (subscription-util/make-subscription-concept {:concept-id supplied-concept-id
@@ -429,3 +431,56 @@
           {:keys [status errors]} (ingest/ingest-concept concept {:token user2-token})]
       (is (= 201 status))
       (is (nil? errors)))))
+
+(deftest ingest-update-and-delete-subscription-as-subscriber
+  (testing "Tests updating and deleting subscriptions as subscriber"
+    (doseq [acl (:items
+                 (ac-util/search-for-acls (system/context)
+                                          {:provider "PROV1"
+                                           :target ["SUBSCRIPTION_MANAGEMENT" "INGEST_MANAGEMENT_ACL"]}
+                                          {:token "mock-echo-system-token"}))
+            :let [concept-id (:concept_id acl)]]
+      (echo-util/ungrant (system/context) concept-id))
+    (index/wait-until-indexed)
+    (let [admin-group (echo-util/get-or-create-group (system/context) "admin-group")
+          admin-user-token (echo-util/login (system/context) "admin-user" [admin-group])]
+      (echo-util/grant-all-subscription-group-sm (system/context)
+                                                 "PROV1"
+                                                 admin-group
+                                                 [:read :update])
+      (echo-util/grant-groups-ingest (system/context)
+                                     "PROV1"
+                                     [admin-group])
+      (index/wait-until-indexed)
+      (let [user1-token (echo-util/login (system/context) "user1")
+            user2-token (echo-util/login (system/context) "user2")
+            concept (subscription-util/make-subscription-concept {:SubscriberId "user1"})
+            concept2 (subscription-util/make-subscription-concept {:SubscriberId "user1" :native-id "new-concept"})
+            {:keys [concept-id revision-id status]} (ingest/ingest-concept concept {:token user1-token})
+            concept (merge {:concept-id concept-id} concept)]
+        (is (= 201 status))
+        (are3 [ingest-api-call args expected-status expected-errors]
+          (let [{:keys [status errors]} (apply ingest-api-call args)]
+            (is (= expected-status status))
+            (is (= expected-errors errors)))
+
+          "Attempt to update subscription as user2"
+          ingest/ingest-concept [concept {:token user2-token}] 401 ["You do not have permission to perform that action."]
+
+          "Attempt to delete subscription as user2"
+          ingest/delete-concept [concept {:token user2-token}] 401 ["You do not have permission to perform that action."]
+
+          "Update subscription as user1"
+          ingest/ingest-concept [concept {:token user1-token}] 200 nil
+
+          "Delete subscription as user1"
+          ingest/delete-concept [concept {:token user1-token}] 200 nil
+
+          "Ingest subscription as admin"
+          ingest/ingest-concept [concept2 {:token admin-user-token}] 201 nil
+
+          "Update subscription as admin"
+          ingest/ingest-concept [concept2 {:token admin-user-token}] 200 nil
+
+          "Delete subscription as admin"
+          ingest/delete-concept [concept2 {:token admin-user-token}] 200 nil)))))
