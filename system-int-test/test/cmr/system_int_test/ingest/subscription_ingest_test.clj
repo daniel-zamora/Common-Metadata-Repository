@@ -453,10 +453,12 @@
       (ac-util/wait-until-indexed)
       (let [user1-token (echo-util/login (system/context) "user1")
             user2-token (echo-util/login (system/context) "user2")
-            concept (subscription-util/make-subscription-concept {:SubscriberId "user1"})
+            concept1-user1 (subscription-util/make-subscription-concept {:SubscriberId "user1"})
+            concept1-user2 (subscription-util/make-subscription-concept {:SubscriberId "user2"})
             concept2 (subscription-util/make-subscription-concept {:SubscriberId "user1" :native-id "new-concept"})
-            {:keys [concept-id revision-id status]} (ingest/ingest-concept concept {:token user1-token})
-            concept (merge {:concept-id concept-id} concept)]
+            {:keys [concept-id revision-id status]} (ingest/ingest-concept concept1-user1 {:token user1-token})
+            concept1-user1 (merge {:concept-id concept-id} concept1-user1)
+            concept1-user2 (merge {:concept-id concept-id} concept1-user2)]
         (is (= 201 status))
         (are3 [ingest-api-call args expected-status expected-errors]
           (let [{:keys [status errors]} (apply ingest-api-call args)]
@@ -464,16 +466,16 @@
             (is (= expected-errors errors)))
 
           "Attempt to update subscription as user2"
-          ingest/ingest-concept [concept {:token user2-token}] 401 ["You do not have permission to perform that action."]
+          ingest/ingest-concept [concept1-user2 {:token user2-token}] 401 ["You do not have permission to perform that action."]
 
           "Attempt to delete subscription as user2"
-          ingest/delete-concept [concept {:token user2-token}] 401 ["You do not have permission to perform that action."]
+          ingest/delete-concept [concept1-user2 {:token user2-token}] 401 ["You do not have permission to perform that action."]
 
           "Update subscription as user1"
-          ingest/ingest-concept [concept {:token user1-token}] 200 nil
+          ingest/ingest-concept [concept1-user1 {:token user1-token}] 200 nil
 
           "Delete subscription as user1"
-          ingest/delete-concept [concept {:token user1-token}] 200 nil
+          ingest/delete-concept [concept1-user1 {:token user1-token}] 200 nil
 
           "Ingest subscription as admin"
           ingest/ingest-concept [concept2 {:token admin-user-token}] 201 nil
