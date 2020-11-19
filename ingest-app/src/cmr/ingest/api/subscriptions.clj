@@ -61,7 +61,6 @@
                                 :subscriber-id)
                             (:SubscriberId (json/decode (:metadata concept) true)))
         token-user (api-core/get-user-id request-context headers)]
-    (proto-repl.saved-values/save 2)
     (if (= token-user subscription-user)
       (warn (format (str "ACLs were bypassed because the token account '%s' "
                          "matched the subscription user '%s' in the metadata.")
