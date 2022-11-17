@@ -382,7 +382,7 @@
             x (- (* (cos lat1) (sin lat2))
                  (* (sin lat1) cos-lat2 (cos lon2-lon1-diff)))
             normalized (degrees (atan2 y x))]
-        (mod (+ (* -1.0 normalized) 360.0) 360.0)))))
+        (mod (+ normalized 360.0) 360.0)))))
 
 (extend-protocol ApproximateEquivalency
   Point
