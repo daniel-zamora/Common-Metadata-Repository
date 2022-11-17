@@ -28,14 +28,14 @@
 
 (deftest ring-validation-test
   (testing "valid ring"
-    (is (nil? (seq (v/validate (rr/ords->ring :geodetic [0 0, 1 0, 0 1, 0 0]))))))
+    (is (nil? (seq (v/validate (rr/ords->ring :geodetic [179 60, 179 62, -179 62, -179 60, 179 60]))))))
   (testing "valid skinny ring"
     ;; This ring is very long and skinny. The arcs are about 18 meters apart.
     (is (nil? (seq (v/validate (rr/ords->ring :geodetic
                                               [-45.19377 68.63509
-                                               -44.67717 68.63509
-                                               -44.67717 68.63526
                                                -45.19377 68.63526
+                                               -44.67717 68.63526
+                                               -44.67717 68.63509
                                                -45.19377 68.63509]))))))
 
   (testing "invalid rings"
@@ -74,7 +74,7 @@
          [(msg/duplicate-points [[1 (p/point 1 1)] [2 (p/point 1 1.000000001)]])]
 
          ;; Not too close
-         [0 0, 1 1, 1 1.00000001, 0 1, 0 0]
+         [0 0, 0 1, 1 1.00000001, 1 1, 0 0]
          []
 
          ;; No consecutive antipodal points
@@ -95,7 +95,7 @@
          [0 0, -1.07 3.05, 6 5, 2 5, 0 0]
          [(msg/ring-self-intersections [(p/point 1.5055573678910719 3.768366191776642)])]
 
-         [0 0, 4 0, 6 5, 4.97 -1.77, 0 0]
+         [179.0 62.0,179.0 60.0,-179.0 60.0,-179.0 62.0,179.0 62.0]
          [(msg/ring-points-out-of-order)])))
 
 (declare ring-examples)
@@ -249,5 +249,3 @@
 
    :starts-on-am3 {:ords [-176.17,0.46 180,0.75 180,-5 -177.38,-3.92 -176.17,0.46]
                    :bounds (m/mbr -180 0.75 -176.17 -5)}})
-
-
