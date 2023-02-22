@@ -1,12 +1,14 @@
 (ns cmr.transmit.http-helper
   "Contains helpers for handling making http requests and processing responses."
-  (:require [clj-http.client :as client]
-            [cmr.common.mime-types :as mt]
-            [cheshire.core :as json]
-            [cmr.transmit.config :as config]
-            [cmr.transmit.connection :as conn]
-            [cmr.common.services.errors :as errors]
-            [cmr.common.services.health-helper :as hh]))
+  (:require
+   [cheshire.core :as json]
+   [clj-http.client :as client]
+   [clojure.java.io :as io]
+   [cmr.common.mime-types :as mt]
+   [cmr.common.services.errors :as errors]
+   [cmr.common.services.health-helper :as hh]
+   [cmr.transmit.config :as config]
+   [cmr.transmit.connection :as conn]))
 
 (defn reset-url
   [conn]
@@ -19,6 +21,16 @@
 (defn health-url
   [conn]
   (format "%s/health" (conn/root-url conn)))
+
+(defn- safe-parse-json-stream
+  "Tries to parse the string in a buffered reader as json. Swallows any exceptions."
+  [s]
+  (when s
+    (try
+      (with-open [r (io/reader (char-array s))]
+        (json/parse-stream r true))
+      (catch Exception _
+        s))))
 
 (defn- safe-parse-json
   "Tries to parse the string as json. Swallows any exceptions."
@@ -40,7 +52,7 @@
                        nil)]
     {:status status
      :body (if (= content-type :json)
-             (safe-parse-json body)
+             (safe-parse-json-stream body)
              body)
      :content-type content-type}))
 
