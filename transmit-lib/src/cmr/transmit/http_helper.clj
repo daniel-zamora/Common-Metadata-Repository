@@ -45,14 +45,16 @@
   "Parses a clj-http response and returns only the keys that we would normally be interested in.
   Parses the json in the body if the content type is JSON. The \"raw\" response body is considered
   useful in cases where the exact status code is required such as in testing."
-  [{:keys [status body headers]}]
+  [{:keys [status body headers stream?]}]
   (let [content-type (mt/mime-type->format
                        (mt/content-type-mime-type headers)
                        ;; don't return a default
                        nil)]
     {:status status
      :body (if (= content-type :json)
-             (safe-parse-json-stream body)
+             (if stream?
+               (safe-parse-json-stream body)
+               (safe-parse-json body))
              body)
      :content-type content-type}))
 
@@ -97,11 +99,10 @@
   * :use-system-token? - indicates if the ECHO system token should be put in the header
   * :http-options - a map of additional HTTP options to send to the clj-http.client/request function.
   * :response-handler - a function to handle the response. Defaults to default-response-handler"
-  [context app-name {:keys [url-fn method http-options response-handler use-system-token?] :as request}]
+  [context app-name {:keys [url-fn method http-options response-handler use-system-token? json-stream?] :as request}]
   (let [conn (config/context->app-connection context app-name)
         response-handler (or response-handler default-response-handler)
         connection-params (config/conn-params conn)
-
         ;; Validate that a connection manager is always present. This can cause poor performance if not.
         _ (when-not (:connection-manager connection-params)
             (errors/internal-error! (format "No connection manager created for [%s] in current application" app-name)))
@@ -113,6 +114,8 @@
                              :throw-exceptions false}
                             (when use-system-token?
                               {:headers {config/token-header (config/echo-system-token)}})
+                            (when json-stream?
+                              {:stream? true})
                             http-options)))]
     (response-handler request response)))
 
