@@ -358,7 +358,15 @@
 (defn execute-query
   "Executes a query to find concepts. Returns concept id, native id, and revision id."
   [context query]
-  (let [start (System/currentTimeMillis)
+  (let [caller-info (try
+                      (let [stack-trace (.getStackTrace (Thread/currentThread))
+                            caller (when (> (count stack-trace) 2)
+                                    (aget stack-trace 2))]
+                        (when caller
+                          (str (.getClassName caller) "/" (.getMethodName caller) ":" (.getLineNumber caller))))
+                      (catch Exception _ "unknown"))
+        _ (info "execute-query called from:" caller-info "for concept-type:" (:concept-type query))
+        start (System/currentTimeMillis)
         e-results (if (granule-match-none? query)
                     (do
                       (info "This is a granule search with MatchNone condition, skip querying ES.")
